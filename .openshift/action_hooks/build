@@ -16,13 +16,6 @@ then
   JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
   JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
   sed -i "s;^.*sonar.jdbc.url=jdbc:mysql.*$;sonar.jdbc.url=jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true;" sonar.properties
-
-  # setup sonar user with simple password (sonar).  have to port-forward to get to this anyway:
-  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create database sonar;"  
-  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create user 'sonar'@'localhost' identified by 'sonar';"  
-  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "grant all privileges on *.* to 'sonar'@'localhost' with grant option;"  
-  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create user 'sonar'@'%' identified by 'sonar';"  
-  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "grant all privileges on *.* to 'sonar'@'%' with grant option;"  
 fi
 
 if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]

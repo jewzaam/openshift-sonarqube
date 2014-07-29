@@ -2,7 +2,12 @@
 
 ROOT=$OPENSHIFT_DATA_DIR
 
-
+# setup sonar user with simple password (sonar).  have to port-forward to get to this anyway:
+mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create database sonar;"  
+mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create user 'sonar'@'localhost' identified by 'sonar';"  
+mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "grant all privileges on *.* to 'sonar'@'localhost' with grant option;"  
+mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create user 'sonar'@'%' identified by 'sonar';"  
+mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "grant all privileges on *.* to 'sonar'@'%' with grant option;"  
 
 cd $ROOT/sonarqube/bin/linux-x86-64
 ./sonar.sh start
