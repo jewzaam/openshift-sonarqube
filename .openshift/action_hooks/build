@@ -13,24 +13,29 @@ cd sonarqube/conf
 
 if [[ $OPENSHIFT_MYSQL_DB_URL ]]
 then
-  JDBC_URL="jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true"
   JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
   JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
-  sed -i "s~^.*sonar.jdbc.url=jdbc:mysql.*$~sonar.jdbc.url=${JDBC_URL}~" sonar.properties
+  sed -i "s;^.*sonar.jdbc.url=jdbc:mysql.*$;sonar.jdbc.url=jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true;" sonar.properties
+
+  # setup sonar user with simple password (sonar).  have to port-forward to get to this anyway:
+  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create database sonar;"  
+  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create user 'sonar'@'localhost' identified by 'sonar';"  
+  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "grant all privileges on *.* to 'sonar'@'localhost' with grant option;"  
+  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "create user 'sonar'@'%' identified by 'sonar';"  
+  mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME -p$OPENSHIFT_MYSQL_DB_PASSWORD -e "grant all privileges on *.* to 'sonar'@'%' with grant option;"  
 fi
 
 if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]
 then
-  JDBC_URL="$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE"
   JDBC_USERNAME=$OPENSHIFT_POSTGRESQL_DB_USERNAME
   JDBC_PASSWORD=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
-  sed -i "s~^.*sonar.jdbc.url=jdbc:postgresql.*$~sonar.jdbc.url=${JDBC_URL}~" sonar.properties
+  sed -i "s;^.*sonar.jdbc.url=jdbc:postgresql.*$;sonar.jdbc.url=$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE;" sonar.properties
 fi
 
 sed -i "s/^#sonar.web.host.*$/sonar.web.host=$OPENSHIFT_DIY_IP/" sonar.properties
 sed -i "s/^#sonar.web.port.*$/sonar.web.port=$OPENSHIFT_DIY_PORT/" sonar.properties
 
-if [[ $JDBC_URL ]]
+if [[ $OPENSHIFT_MYSQL_DB_URL || $OPENSHIFT_POSTGRESQL_DB_URL ]]
 then
   sed -i "s/^sonar.jdbc.username.*$/sonar.jdbc.username=$JDBC_USERNAME/" sonar.properties
   sed -i "s/^sonar.jdbc.password.*$/sonar.jdbc.password=$JDBC_PASSWORD/" sonar.properties
