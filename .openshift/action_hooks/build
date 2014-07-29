@@ -15,14 +15,14 @@ if [[ $OPENSHIFT_MYSQL_DB_URL ]]
 then
   JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
   JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
-  sed -i "s;^.*sonar.jdbc.url=jdbc:mysql.*$;sonar.jdbc.url=jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true;" sonar.properties
+  sed -i 's;^sonar.jdbc.url.*;sonar.jdbc.url=jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true;' sonar.properties
 fi
 
 if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]
 then
   JDBC_USERNAME=$OPENSHIFT_POSTGRESQL_DB_USERNAME
   JDBC_PASSWORD=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
-  sed -i "s;^.*sonar.jdbc.url=jdbc:postgresql.*$;sonar.jdbc.url=$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE;" sonar.properties
+  sed -i "s;^sonar.jdbc.url.*;sonar.jdbc.url=$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE;" sonar.properties
 fi
 
 sed -i "s/^#sonar.web.host.*$/sonar.web.host=$OPENSHIFT_DIY_IP/" sonar.properties
@@ -32,7 +32,6 @@ if [[ $OPENSHIFT_MYSQL_DB_URL || $OPENSHIFT_POSTGRESQL_DB_URL ]]
 then
   sed -i "s/^sonar.jdbc.username.*$/sonar.jdbc.username=$JDBC_USERNAME/" sonar.properties
   sed -i "s/^sonar.jdbc.password.*$/sonar.jdbc.password=$JDBC_PASSWORD/" sonar.properties
-  sed -i 's/^sonar.jdbc.url/#sonar.jdbc.url/' sonar.properties
 fi
 
 cd $OPENSHIFT_DATA_DIR
