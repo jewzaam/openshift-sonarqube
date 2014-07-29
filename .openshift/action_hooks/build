@@ -1,10 +1,21 @@
 #!/bin/bash
 ROOT=$OPENSHIFT_DATA_DIR
-SONAR_VERSION=4.1.1
+SONAR_VERSION=4.3.2
+
+if [[ $OPENSHIFT_MYSQL_DB_URL ]]
+then
+  JDBC_SEARCH="jdbc:mysql"
+  JDBC_URL="jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true"
+  JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
+  JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
+fi
 
 if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]
 then
-  PG_URL="$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE"
+  JDBC_SEARCH="jdbc:postgresql"
+  JDBC_URL="$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE"
+  JDBC_USERNAME=$OPENSHIFT_POSTGRESQL_DB_USERNAME
+  JDBC_PASSWORD=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
 fi
 
 cd $ROOT
@@ -20,12 +31,12 @@ cd sonarqube/conf
 sed -i "s/^#sonar.web.host.*$/sonar.web.host=$OPENSHIFT_DIY_IP/" sonar.properties
 sed -i "s/^#sonar.web.port.*$/sonar.web.port=$OPENSHIFT_DIY_PORT/" sonar.properties
 
-if [[ $PG_URL ]]
+if [[ $JDBC_URL ]]
 then
-  sed -i "s/^sonar.jdbc.username.*$/sonar.jdbc.username=$OPENSHIFT_POSTGRESQL_DB_USERNAME/" sonar.properties
-  sed -i "s/^sonar.jdbc.password.*$/sonar.jdbc.password=$OPENSHIFT_POSTGRESQL_DB_PASSWORD/" sonar.properties
+  sed -i "s/^sonar.jdbc.username.*$/sonar.jdbc.username=$JDBC_USERNAME/" sonar.properties
+  sed -i "s/^sonar.jdbc.password.*$/sonar.jdbc.password=$JDBC_PASSWORD/" sonar.properties
   sed -i 's/^sonar.jdbc.url/#sonar.jdbc.url/' sonar.properties
-  sed -i "s;^.*sonar.jdbc.url=jdbc:postgresql.*$;sonar.jdbc.url=jdbc:postgresql://$PG_URL;" sonar.properties
+  sed -i "s#^.*sonar.jdbc.url=${JDBC_SEARCH}.*$#sonar.jdbc.url=${JDBC_URL}#" sonar.properties
 fi
 
 cd $OPENSHIFT_DATA_DIR
@@ -40,14 +51,14 @@ cd $OPENSHIFT_DATA_DIR/tomcat
 rm -rf logs
 ln -s $OPENSHIFT_LOG_DIR logs
 
-rm ${OPENSHIFT_DATA_DIR}sonarqube/bin/linux-x86-64/lib/libwrapper-*
-rm ${OPENSHIFT_DATA_DIR}sonarqube/lib/wrapper-*
-curl -o ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9.tar.gz http://wrapper.tanukisoftware.com/download/3.5.9/wrapper-delta-pack-3.5.9.tar.gz
-tar -zxvf ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9.tar.gz -C ${OPENSHIFT_DATA_DIR}
-rm ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9.tar.gz
-cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9/lib/wrapper.jar ${OPENSHIFT_DATA_DIR}sonarqube/lib/wrapper.jar
-cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9/bin/wrapper-linux-x86-64 ${OPENSHIFT_DATA_DIR}sonarqube/bin/linux-x86-64/wrapper
-cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9/lib/libwrapper-linux-x86-64.so ${OPENSHIFT_DATA_DIR}sonarqube/bin/linux-x86-64/lib/libwrapper.so
+#rm ${OPENSHIFT_DATA_DIR}sonarqube/bin/linux-x86-64/lib/libwrapper-*
+#rm ${OPENSHIFT_DATA_DIR}sonarqube/lib/wrapper-*
+#curl -o ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9.tar.gz http://wrapper.tanukisoftware.com/download/3.5.9/wrapper-delta-pack-3.5.9.tar.gz
+#tar -zxvf ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9.tar.gz -C ${OPENSHIFT_DATA_DIR}
+#rm ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9.tar.gz
+#cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9/lib/wrapper.jar ${OPENSHIFT_DATA_DIR}sonarqube/lib/wrapper.jar
+#cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9/bin/wrapper-linux-x86-64 ${OPENSHIFT_DATA_DIR}sonarqube/bin/linux-x86-64/wrapper
+#cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-3.5.9/lib/libwrapper-linux-x86-64.so ${OPENSHIFT_DATA_DIR}sonarqube/bin/linux-x86-64/lib/libwrapper.so
 
 echo "wrapper.backend.type=PIPE" >> ${OPENSHIFT_DATA_DIR}sonarqube/conf/wrapper.conf
 
