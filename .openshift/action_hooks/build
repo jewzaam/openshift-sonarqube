@@ -2,32 +2,31 @@
 ROOT=$OPENSHIFT_DATA_DIR
 SONAR_VERSION=4.3.2
 
-if [[ $OPENSHIFT_MYSQL_DB_URL ]]
-then
-  JDBC_SEARCH="jdbc:mysql"
-  JDBC_URL="jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true"
-  JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
-  JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
-fi
-
-if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]
-then
-  JDBC_SEARCH="jdbc:postgresql"
-  JDBC_URL="$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE"
-  JDBC_USERNAME=$OPENSHIFT_POSTGRESQL_DB_USERNAME
-  JDBC_PASSWORD=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
-fi
-
 cd $ROOT
 
-wget http://dist.sonar.codehaus.org/sonarqube-$SONAR_VERSION.zip
+wget -q -c http://dist.sonar.codehaus.org/sonarqube-$SONAR_VERSION.zip
 unzip sonarqube-$SONAR_VERSION.zip
 rm -Rf sonarqube sonarqube-$SONAR_VERSION.zip
 mv sonarqube-$SONAR_VERSION sonarqube
 
 cd sonarqube/conf
-#sed -i 's/
-#//' sonar.properties
+
+if [[ $OPENSHIFT_MYSQL_DB_URL ]]
+then
+  JDBC_URL="jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true"
+  JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
+  JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
+  sed -i "s~^.*sonar.jdbc.url=jdbc:mysql.*$~sonar.jdbc.url=${JDBC_URL}~" sonar.properties
+fi
+
+if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]
+then
+  JDBC_URL="$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/$PGDATABASE"
+  JDBC_USERNAME=$OPENSHIFT_POSTGRESQL_DB_USERNAME
+  JDBC_PASSWORD=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
+  sed -i "s~^.*sonar.jdbc.url=jdbc:postgresql.*$~sonar.jdbc.url=${JDBC_URL}~" sonar.properties
+fi
+
 sed -i "s/^#sonar.web.host.*$/sonar.web.host=$OPENSHIFT_DIY_IP/" sonar.properties
 sed -i "s/^#sonar.web.port.*$/sonar.web.port=$OPENSHIFT_DIY_PORT/" sonar.properties
 
@@ -36,7 +35,6 @@ then
   sed -i "s/^sonar.jdbc.username.*$/sonar.jdbc.username=$JDBC_USERNAME/" sonar.properties
   sed -i "s/^sonar.jdbc.password.*$/sonar.jdbc.password=$JDBC_PASSWORD/" sonar.properties
   sed -i 's/^sonar.jdbc.url/#sonar.jdbc.url/' sonar.properties
-  sed -i "s#^.*sonar.jdbc.url=${JDBC_SEARCH}.*$#sonar.jdbc.url=${JDBC_URL}#" sonar.properties
 fi
 
 cd $OPENSHIFT_DATA_DIR
