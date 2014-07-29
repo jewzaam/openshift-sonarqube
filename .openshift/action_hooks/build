@@ -15,7 +15,7 @@ if [[ $OPENSHIFT_MYSQL_DB_URL ]]
 then
   JDBC_USERNAME=$OPENSHIFT_MYSQL_DB_USERNAME
   JDBC_PASSWORD=$OPENSHIFT_MYSQL_DB_PASSWORD
-  sed -i 's;^sonar.jdbc.url.*;sonar.jdbc.url=jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true;' sonar.properties
+  sed -i "s;^sonar.jdbc.url.*;sonar.jdbc.url=jdbc:mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true;" sonar.properties
 fi
 
 if [[ $OPENSHIFT_POSTGRESQL_DB_URL ]]
