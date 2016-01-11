@@ -58,5 +58,3 @@ cp ${OPENSHIFT_DATA_DIR}wrapper-delta-pack-${WRAPPER_VERSION}/lib/libwrapper-lin
 
 echo -e "\nwrapper.backend.type=PIPE" >> ${OPENSHIFT_DATA_DIR}sonarqube/conf/wrapper.conf
 
-
-
